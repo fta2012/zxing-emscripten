@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script type="text/javascript" src="zxing.js"></script>
+        <script>
+            $(function() {
+                var canvas = $('canvas')[0];
+                var video = $('video')[0];
+                var context = canvas.getContext('2d');
+                
+                navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+                window.URL = window.URL || window.webkitURL;
+                navigator.getUserMedia({video: true}, function (stream) {
+                    video.src = window.URL.createObjectURL(stream);
+                    video.onloadedmetadata = function(e) {
+                        setInterval(function() {
+                            context.drawImage(video, 0, 0);
+
+                            var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                            var s = Module.qrcode_decode(new Uint8Array(imageData.data), imageData.width, imageData.height, function(data) {
+                                for (var y = 0; y < imageData.height; y++) {
+                                    for (var x = 0; x < imageData.width; x++) {
+                                        for (var j = 0; j < 4; j++) {
+                                            var pos = 4 * (y * imageData.width + x) + j;
+                                            imageData.data[pos] = data[pos] >>> 0;
+                                        }
+                                    }
+                                }
+                                context.putImageData(imageData, 0, 0);
+                            });
+                            if (s.length) {
+                                $('#message').text(s);
+                            } else {
+                                $('#message').text('No QR code detected');
+                            }
+                        }, 33);
+                    }
+                }, function (e) {
+                    console.log("getUserMediaError", e);
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div id="message"></div>
+        <canvas width="640" height="480"></canvas>
+        <video style="display:none" autoplay></video>
+    </body>
+</html>

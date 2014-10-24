@@ -35,6 +35,8 @@ if(MSVC)
     add_definitions(/Za)
 endif()
 
+set(CMAKE_CXX_FLAGS "-std=c++11 --bind -O2 -s NO_EXIT_RUNTIME=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=0")
+
 # Add libzxing library.
 file(GLOB_RECURSE LIBZXING_FILES
     "./core/src/*.cpp"
@@ -53,13 +55,7 @@ endif()
 include_directories("./core/src/")
 add_library(libzxing STATIC ${LIBZXING_FILES})
 set_target_properties(libzxing PROPERTIES PREFIX "")
-find_package(Iconv)
-if(ICONV_FOUND)
-    include_directories(${ICONV_INCLUDE_DIR})
-    target_link_libraries(libzxing ${ICONV_LIBRARIES})
-else()
-    add_definitions(-DNO_ICONV=1)
-endif()
+add_definitions(-DNO_ICONV=1)
 
 # Add cli executable.
 file(GLOB_RECURSE ZXING_FILES
